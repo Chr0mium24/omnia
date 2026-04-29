@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 360px; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; padding: 12px; color: #222; }
+    .section { margin-bottom: 12px; }
+    .section-header { font-weight: 600; color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    input[type="text"], input[type="number"] { padding: 5px 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 13px; outline: none; }
+    input[type="text"]:focus, input[type="number"]:focus { border-color: #4a6cf7; box-shadow: 0 0 0 2px rgba(74,108,247,0.15); }
+    .ws-row { display: flex; gap: 6px; align-items: center; }
+    .ws-row input[type="text"] { flex: 1; }
+    .ws-row input[type="number"] { width: 70px; }
+    .ws-row span { color: #999; }
+    .status-row { display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .status-dot.connected { background: #2ecc71; box-shadow: 0 0 4px rgba(46,204,113,0.4); }
+    .status-dot.disconnected { background: #e74c3c; box-shadow: 0 0 4px rgba(231,76,60,0.4); }
+    .status-dot.connecting { background: #f39c12; box-shadow: 0 0 4px rgba(243,156,18,0.4); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    label.toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+    label.toggle input { display: none; }
+    .toggle-switch { width: 36px; height: 20px; background: #ccc; border-radius: 10px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    label.toggle input:checked + .toggle-switch { background: #4a6cf7; }
+    label.toggle input:checked + .toggle-switch::after { transform: translateX(16px); }
+    #log { max-height: 200px; overflow-y: auto; font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; font-size: 11px; background: #f8f8f8; border-radius: 5px; padding: 6px; }
+    .log-entry { padding: 2px 0; border-bottom: 1px solid #eee; display: flex; gap: 6px; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { color: #999; flex-shrink: 0; }
+    .log-status { flex-shrink: 0; width: 12px; }
+    .log-action { font-weight: 600; color: #555; }
+    .log-summary { color: #888; }
+    .log-entry.failed .log-action { color: #e74c3c; }
+    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; font-size: 11px; color: #555; }
+    button:hover { background: #f0f0f0; border-color: #ccc; }
+    .empty-log { color: #bbb; text-align: center; padding: 20px 0; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="section">
+    <div class="section-header">WebSocket Server</div>
+    <div class="ws-row">
+      <input type="text" id="wsHost" placeholder="127.0.0.1" spellcheck="false" />
+      <span>:</span>
+      <input type="number" id="wsPort" placeholder="3131" min="1" max="65535" />
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">Status</div>
+    <div class="status-row">
+      <span class="status-dot disconnected" id="statusDot"></span>
+      <span id="statusText">Disconnected</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <label class="toggle">
+      <input type="checkbox" id="cdpEnabled" />
+      <span class="toggle-switch"></span>
+      Enable CDP (chrome.debugger)
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="log-header">
+      <span class="section-header" style="margin-bottom:0">Operations</span>
+      <button id="clearLog">Clear</button>
+    </div>
+    <div id="log"><div class="empty-log">No operations yet</div></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
