@@ -173,5 +173,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   return false;
 });
 
-// Initial connection
-connect();
+// Initial connection (only in extension context, not test)
+if (typeof chrome !== 'undefined' && typeof chrome.runtime?.getManifest === 'function') {
+  connect();
+}
