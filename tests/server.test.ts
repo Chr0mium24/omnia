@@ -245,12 +245,15 @@ describe('OmniaServer', () => {
       const client = await wsConnect(port);
       const promise = server.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' });
 
+      // Attach rejection handler first to avoid unhandled rejection
+      const caught = expect(promise).rejects.toThrow('shutting down');
+
       // Give a small delay so request is registered
       await new Promise((r) => setTimeout(r, 50));
 
       await server.shutdown();
 
-      await expect(promise).rejects.toThrow('shutting down');
+      await caught;
 
       client.close();
     });

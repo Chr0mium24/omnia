@@ -10,21 +10,13 @@ import {
 } from './tools.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
-const WS_PORT = parseInt(process.env.OMNIA_WS_PORT || '3131', 10);
-
-const omnia = new OmniaServer(WS_PORT);
-const mcp = new McpServer({
-  name: 'omnia',
-  version: '0.1.0',
-});
-
-function toResult(data: unknown): CallToolResult {
+export function toResult(data: unknown): CallToolResult {
   return {
     content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
   };
 }
 
-function toError(err: unknown): CallToolResult {
+export function toError(err: unknown): CallToolResult {
   const message = err instanceof Error ? err.message : String(err);
   return {
     content: [{ type: 'text', text: message }],
@@ -32,57 +24,75 @@ function toError(err: unknown): CallToolResult {
   };
 }
 
-mcp.tool(
-  chromeApiToolSchema.name,
-  chromeApiToolSchema.description,
-  ChromeApiParamsSchema.shape,
-  async (args): Promise<CallToolResult> => {
-    try {
-      const result = await omnia.callTool('omnia_chrome_api', {
-        api: args.api,
-        method: args.method,
-        params: args.params as Record<string, unknown> | undefined,
-      });
-      return toResult(result);
-    } catch (err) {
-      return toError(err);
-    }
-  },
-);
+export function eventLog(event: { method: string; tabId: number }): string {
+  return `[omnia] CDP event: ${event.method} tab=${event.tabId}`;
+}
 
-mcp.tool(
-  cdpToolSchema.name,
-  cdpToolSchema.description,
-  CdpParamsSchema.shape,
-  async (args): Promise<CallToolResult> => {
-    try {
-      const result = await omnia.callTool('omnia_cdp', {
-        method: args.method,
-        params: args.params as Record<string, unknown> | undefined,
-        tabId: args.tabId,
-      });
-      return toResult(result);
-    } catch (err) {
-      return toError(err);
-    }
-  },
-);
+export function createMcpTools(mcp: McpServer, omnia: OmniaServer): void {
+  mcp.tool(
+    chromeApiToolSchema.name,
+    chromeApiToolSchema.description,
+    ChromeApiParamsSchema.shape,
+    async (args): Promise<CallToolResult> => {
+      try {
+        const result = await omnia.callTool('omnia_chrome_api', {
+          api: args.api,
+          method: args.method,
+          params: args.params as Record<string, unknown> | undefined,
+        });
+        return toResult(result);
+      } catch (err) {
+        return toError(err);
+      }
+    },
+  );
 
-omnia.onEvent((event) => {
-  process.stderr.write(`[omnia] CDP event: ${event.method} tab=${event.tabId}\n`);
-});
+  mcp.tool(
+    cdpToolSchema.name,
+    cdpToolSchema.description,
+    CdpParamsSchema.shape,
+    async (args): Promise<CallToolResult> => {
+      try {
+        const result = await omnia.callTool('omnia_cdp', {
+          method: args.method,
+          params: args.params as Record<string, unknown> | undefined,
+          tabId: args.tabId,
+        });
+        return toResult(result);
+      } catch (err) {
+        return toError(err);
+      }
+    },
+  );
+}
 
-const transport = new StdioServerTransport();
-await mcp.connect(transport);
+export async function main(): Promise<void> {
+  const WS_PORT = parseInt(process.env.OMNIA_WS_PORT || '3131', 10);
+  const omnia = new OmniaServer(WS_PORT);
+  const mcp = new McpServer({ name: 'omnia', version: '0.1.0' });
 
-process.stderr.write(`[omnia] WebSocket server listening on port ${WS_PORT}\n`);
+  createMcpTools(mcp, omnia);
 
-process.on('SIGINT', async () => {
-  await omnia.shutdown();
-  process.exit(0);
-});
+  omnia.onEvent((event) => {
+    process.stderr.write(eventLog(event) + '\n');
+  });
 
-process.on('SIGTERM', async () => {
-  await omnia.shutdown();
-  process.exit(0);
-});
+  const transport = new StdioServerTransport();
+  await mcp.connect(transport);
+  process.stderr.write(`[omnia] WebSocket server listening on port ${WS_PORT}\n`);
+
+  process.on('SIGINT', async () => {
+    await omnia.shutdown();
+    process.exit(0);
+  });
+  process.on('SIGTERM', async () => {
+    await omnia.shutdown();
+    process.exit(0);
+  });
+}
+
+// Run server when executed directly
+const isMainModule = process.argv[1]?.endsWith('/dist/index.js') || process.argv[1]?.endsWith('/index.ts');
+if (isMainModule) {
+  main();
+}

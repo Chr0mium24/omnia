@@ -5,7 +5,7 @@ import {
   formatSummary,
   type ChromeApiCallParams,
   type CdpCallParams,
-} from '../extension/src/types.js';
+} from '../extension/src/types.ts';
 
 describe('isChromeApiParams', () => {
   it('returns true for ChromeApiCallParams', () => {

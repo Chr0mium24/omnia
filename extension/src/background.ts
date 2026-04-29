@@ -21,6 +21,10 @@ export async function connect(): Promise<void> {
   const url = getWsUrl(config);
 
   if (ws) {
+    ws.onclose = null;
+    ws.onopen = null;
+    ws.onerror = null;
+    ws.onmessage = null;
     ws.close();
     ws = null;
   }
@@ -43,24 +47,28 @@ export async function connect(): Promise<void> {
   };
 
   ws.onmessage = async (event) => {
-    try {
-      const msg: OmniaRequestMessage = JSON.parse(event.data as string);
-      if (msg.type !== 'request') return;
-
-      let result: unknown;
-      try {
-        result = await handleToolCall(msg.tool, msg.params);
-        await logOperation(msg.tool, 'completed', msg.params);
-        sendResponse(msg.requestId, { result });
-      } catch (e) {
-        const error = e instanceof Error ? e.message : String(e);
-        await logOperation(msg.tool, 'failed', msg.params, error);
-        sendResponse(msg.requestId, { error });
-      }
-    } catch {
-      // JSON parse error — ignore malformed messages
-    }
+    await handleIncomingMessage(event.data as string);
   };
+}
+
+export async function handleIncomingMessage(data: string): Promise<void> {
+  try {
+    const msg: OmniaRequestMessage = JSON.parse(data);
+    if (msg.type !== 'request') return;
+
+    let result: unknown;
+    try {
+      result = await handleToolCall(msg.tool, msg.params);
+      await logOperation(msg.tool, 'completed', msg.params);
+      sendResponse(msg.requestId, { result });
+    } catch (e) {
+      const error = e instanceof Error ? e.message : String(e);
+      await logOperation(msg.tool, 'failed', msg.params, error);
+      sendResponse(msg.requestId, { error });
+    }
+  } catch {
+    // JSON parse error — ignore malformed messages
+  }
 }
 
 function scheduleReconnect(): void {
@@ -95,7 +103,7 @@ async function handleToolCall(tool: 'omnia_chrome_api' | 'omnia_cdp', params: To
   return handleCdp(params as CdpCallParams);
 }
 
-async function handleChromeApi(params: ChromeApiCallParams): Promise<unknown> {
+export async function handleChromeApi(params: ChromeApiCallParams): Promise<unknown> {
   const apiObj = (chrome as Record<string, unknown>)[params.api];
   if (!apiObj || typeof apiObj !== 'object') {
     throw new Error(`Unknown chrome API namespace: ${params.api}`);
@@ -112,7 +120,7 @@ async function handleChromeApi(params: ChromeApiCallParams): Promise<unknown> {
   }
 }
 
-async function handleCdp(params: CdpCallParams): Promise<unknown> {
+export async function handleCdp(params: CdpCallParams): Promise<unknown> {
   try {
     return await chrome.debugger.sendCommand(
       { tabId: params.tabId },

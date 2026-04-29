@@ -13,9 +13,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "server",
     "lib": ["ES2022"]
   },
-  "include": ["server/**/*.ts"],
-  "exclude": ["node_modules", "extension", "dist", "tests"]
+  "include": ["server/**/*.ts", "extension/src/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", "extension/dist", "dist"]
 }

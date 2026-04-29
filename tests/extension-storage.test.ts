@@ -52,7 +52,7 @@ const mockChrome = {
 (globalThis as any).chrome = mockChrome;
 
 // Now import the module under test
-import { getConfig, setConfig, getOplog, appendOplog, clearOplog, type OplogEntry } from '../extension/src/storage.js';
+import { getConfig, setConfig, getOplog, appendOplog, clearOplog, type OplogEntry } from '../extension/src/storage.ts';
 
 describe('storage', () => {
   beforeEach(() => {

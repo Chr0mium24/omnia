@@ -7,5 +7,11 @@ export default defineConfig({
       provider: "v8",
       include: ["server/**/*.ts", "extension/src/**/*.ts"],
     },
+    environmentMatchGlobs: [
+      ["tests/extension-popup.test.ts", "happy-dom"],
+    ],
+  },
+  esbuild: {
+    target: "es2022",
   },
 });
