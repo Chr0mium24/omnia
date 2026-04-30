@@ -9,11 +9,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "lib": ["ES2022"]
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["server/**/*.ts", "extension/src/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "extension/dist", "dist"]

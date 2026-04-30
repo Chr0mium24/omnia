@@ -143,7 +143,7 @@ describe('OmniaServer', () => {
       const results = await Promise.all([p1, p2, p3]);
       expect(results).toEqual([{ first: true }, { second: true }, { third: true }]);
       client.close();
-    }, 10000);
+    });
   });
 
   describe('event handling', () => {

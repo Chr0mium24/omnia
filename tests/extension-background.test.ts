@@ -17,7 +17,7 @@ vi.mocked(_chrome.runtime.onMessage.addListener).mockImplementation((fn) => {
 
 let sendCalls: { action: string; status?: string }[] = [];
 vi.mocked(_chrome.runtime.sendMessage).mockImplementation((msg, cb) => {
-  sendCalls.push(msg as { action: string; status?: string });
+  sendCalls.push(msg as unknown as { action: string; status?: string });
   if (typeof cb === 'function') (cb as (r: unknown) => void)({ status: 'connected' });
   return Promise.resolve({ status: 'connected' });
 });

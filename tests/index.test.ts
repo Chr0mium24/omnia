@@ -8,7 +8,7 @@ describe('toResult', () => {
   it('wraps primitive', () => expect(toResult(42)).toEqual({ content: [{ type: 'text', text: '42' }] }));
   it('wraps null', () => expect(toResult(null)).toEqual({ content: [{ type: 'text', text: 'null' }] }));
   it('wraps string', () => expect(toResult('hello')).toEqual({ content: [{ type: 'text', text: '"hello"' }] }));
-  it('wraps array', () => expect(toResult([1, 2]).content[0].text).toBe('[\n  1,\n  2\n]'));
+  it('wraps array', () => expect(toResult([1, 2])).toEqual({ content: [{ type: 'text', text: '[\n  1,\n  2\n]' }] }));
   it('wraps undefined', () => expect(toResult(undefined)).toEqual({ content: [{ type: 'text', text: 'undefined' }] }));
 });
 

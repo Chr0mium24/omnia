@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 vi.stubGlobal('crypto', {
   randomUUID: vi.fn().mockReturnValue('00000000-0000-0000-0000-000000000001'),
   getRandomValues: vi.fn(),
-  subtle: {} as unknown as SubtleCrypto,
+  subtle: {} as unknown as never,
 });
 
 // Mock WebSocket

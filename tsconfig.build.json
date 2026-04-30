@@ -1,7 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "server"
+    "rootDir": "server",
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist"
   },
   "include": ["server/**/*.ts"],
   "exclude": ["node_modules", "dist", "tests", "extension"]

@@ -9,8 +9,8 @@ const runtimeMessageListeners: ((msg: Record<string, unknown>) => void)[] = [];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const _chrome = (globalThis as any).chrome as typeof chrome;
 
-vi.mocked(_chrome.storage.local.get).mockResolvedValue({});
-vi.mocked(_chrome.storage.local.set).mockResolvedValue(undefined);
+vi.mocked(_chrome.storage.local.get).mockResolvedValue({} as never);
+vi.mocked(_chrome.storage.local.set).mockResolvedValue(undefined as never);
 vi.mocked(_chrome.storage.onChanged.addListener).mockImplementation((fn) => {
   onChangedListeners.push(fn as (changes: Record<string, unknown>) => void);
 });
