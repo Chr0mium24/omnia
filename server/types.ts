@@ -27,7 +27,7 @@ export type OmniaEventMessage = {
 export type ChromeApiCallParams = {
   api: string;
   method: string;
-  params?: Record<string, unknown>;
+  params?: unknown[];
 };
 
 export type CdpCallParams = {

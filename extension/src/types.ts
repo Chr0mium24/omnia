@@ -1,22 +1,6 @@
-import type { OmniaRequestMessage, OmniaResponseMessage } from '../../server/types.js';
+import type { OmniaRequestMessage, OmniaResponseMessage, ChromeApiCallParams, CdpCallParams, ToolParams, ToolName } from '../../server/types.js';
 
-export type { OmniaRequestMessage, OmniaResponseMessage };
-
-export type ToolName = 'chrome_api' | 'cdp';
-
-export type ChromeApiCallParams = {
-  api: string;
-  method: string;
-  params?: Record<string, unknown>;
-};
-
-export type CdpCallParams = {
-  method: string;
-  params?: Record<string, unknown>;
-  tabId: number;
-};
-
-export type ToolParams = ChromeApiCallParams | CdpCallParams;
+export type { OmniaRequestMessage, OmniaResponseMessage, ChromeApiCallParams, CdpCallParams, ToolParams, ToolName };
 
 export function isChromeApiParams(params: ToolParams): params is ChromeApiCallParams {
   return 'api' in params;
@@ -29,8 +13,9 @@ export function isCdpParams(params: ToolParams): params is CdpCallParams {
 export function formatSummary(tool: ToolName, params: ToolParams): string {
   if (tool === 'chrome_api' && isChromeApiParams(params)) {
     const { api, method, params: p } = params;
-    if (method === 'create' && p && typeof p === 'object' && 'url' in p) return `${api}.${method} ${p.url}`;
-    if (method === 'remove' && p && typeof p === 'object' && 'tabId' in p) return `${api}.${method} tab ${p.tabId}`;
+    const firstArg = p && Array.isArray(p) && p.length > 0 && typeof p[0] === 'object' && p[0] !== null ? p[0] as Record<string, unknown> : null;
+    if (method === 'create' && firstArg && 'url' in firstArg) return `${api}.${method} ${firstArg.url}`;
+    if (method === 'remove' && firstArg && 'tabId' in firstArg) return `${api}.${method} tab ${firstArg.tabId}`;
     if (method === 'query') return `${api}.${method}`;
     if (method === 'executeScript') return `${api}.${method}`;
     return `${api}.${method}`;

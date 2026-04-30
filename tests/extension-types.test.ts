@@ -10,7 +10,7 @@ import {
 describe('isChromeApiParams', () => {
   it('returns true for ChromeApiCallParams', () => {
     expect(isChromeApiParams({ api: 'tabs', method: 'query' })).toBe(true);
-    expect(isChromeApiParams({ api: 'windows', method: 'create', params: { url: 'x' } })).toBe(true);
+    expect(isChromeApiParams({ api: 'windows', method: 'create', params: [{ url: 'x' }] })).toBe(true);
   });
 
   it('returns false for CdpCallParams', () => {
@@ -51,7 +51,7 @@ describe('formatSummary', () => {
       const result = formatSummary('chrome_api', {
         api: 'tabs',
         method: 'create',
-        params: { url: 'https://example.com', active: true },
+        params: [{ url: 'https://example.com', active: true }],
       });
       expect(result).toBe('tabs.create https://example.com');
     });
@@ -65,7 +65,7 @@ describe('formatSummary', () => {
       const result = formatSummary('chrome_api', {
         api: 'tabs',
         method: 'remove',
-        params: { tabId: 42 },
+        params: [{ tabId: 42 }],
       });
       expect(result).toBe('tabs.remove tab 42');
     });
@@ -94,7 +94,7 @@ describe('formatSummary', () => {
       const result = formatSummary('chrome_api', {
         api: 'tabs',
         method: 'create',
-        params: 'invalid' as unknown as Record<string, unknown>,
+        params: 'invalid' as unknown as unknown[],
       });
       expect(result).toBe('tabs.create');
     });

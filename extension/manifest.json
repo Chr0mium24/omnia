@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Omnia",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Expose all Chrome APIs and CDP to AI agents via MCP",
   "permissions": [
     "tabs",
@@ -17,7 +17,7 @@
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "dist/background.js"
   },
   "action": {
     "default_popup": "popup.html",

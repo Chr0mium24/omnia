@@ -38,7 +38,7 @@ export function createMcpTools(mcp: McpServer, omnia: OmniaServer): void {
         const result = await omnia.callTool('chrome_api', {
           api: args.api,
           method: args.method,
-          params: args.params as Record<string, unknown> | undefined,
+          params: args.params as unknown[] | undefined,
         });
         return toResult(result);
       } catch (err) {
@@ -69,7 +69,7 @@ export function createMcpTools(mcp: McpServer, omnia: OmniaServer): void {
 export async function main(): Promise<void> {
   const WS_PORT = parseInt(process.env.OMNIA_WS_PORT || '3131', 10);
   const omnia = new OmniaServer(WS_PORT);
-  const mcp = new McpServer({ name: 'omnia', version: '0.1.0' });
+  const mcp = new McpServer({ name: 'omnia', version: '0.1.2' });
 
   createMcpTools(mcp, omnia);
 

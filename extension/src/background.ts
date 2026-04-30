@@ -7,6 +7,8 @@ import {
   type CdpCallParams,
   type ToolParams,
   formatSummary,
+  isChromeApiParams,
+  isCdpParams,
 } from './types.js';
 
 let ws: WebSocket | null = null;
@@ -97,10 +99,13 @@ function broadcastStatus(status: 'connected' | 'disconnected' | 'connecting'): v
 }
 
 async function handleToolCall(tool: 'chrome_api' | 'cdp', params: ToolParams): Promise<unknown> {
-  if (tool === 'chrome_api') {
-    return handleChromeApi(params as ChromeApiCallParams);
+  if (tool === 'chrome_api' && isChromeApiParams(params)) {
+    return handleChromeApi(params);
   }
-  return handleCdp(params as CdpCallParams);
+  if (tool === 'cdp' && isCdpParams(params)) {
+    return handleCdp(params);
+  }
+  throw new Error(`Invalid params for tool ${tool}`);
 }
 
 export async function handleChromeApi(params: ChromeApiCallParams): Promise<unknown> {
@@ -114,7 +119,8 @@ export async function handleChromeApi(params: ChromeApiCallParams): Promise<unkn
     throw new Error(`Unknown method: ${params.api}.${params.method}`);
   }
   try {
-    return await (methodFn as (p: Record<string, unknown>) => Promise<unknown>)(params.params || {});
+    const args = params.params && params.params.length > 0 ? params.params : [{}];
+    return await (methodFn as (...a: unknown[]) => Promise<unknown>)(...args);
   } catch (e) {
     throw new Error(e instanceof Error ? e.message : String(e));
   }
@@ -143,12 +149,13 @@ function logOperation(
   params: ToolParams,
   error?: string,
 ): Promise<void> {
+  const action = tool === 'chrome_api' && isChromeApiParams(params)
+    ? `chrome_api ${params.api}.${params.method}`
+    : `cdp ${isCdpParams(params) ? params.method : 'unknown'}`;
   return appendOplog({
     id: crypto.randomUUID(),
     timestamp: Date.now(),
-    action: tool === 'chrome_api'
-      ? `chrome_api ${(params as ChromeApiCallParams).api}.${(params as ChromeApiCallParams).method}`
-      : `cdp ${(params as CdpCallParams).method}`,
+    action,
     status,
     summary: formatSummary(tool, params),
     error,

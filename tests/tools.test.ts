@@ -16,10 +16,10 @@ describe('ChromeApiParamsSchema', () => {
   });
 
   it('parses input with optional params', () => {
-    const result = ChromeApiParamsSchema.parse({ api: 'tabs', method: 'create', params: { url: 'https://example.com' } });
+    const result = ChromeApiParamsSchema.parse({ api: 'tabs', method: 'create', params: [{ url: 'https://example.com' }] });
     expect(result.api).toBe('tabs');
     expect(result.method).toBe('create');
-    expect(result.params).toEqual({ url: 'https://example.com' });
+    expect(result.params).toEqual([{ url: 'https://example.com' }]);
   });
 
   it('allows all known namespaces', () => {

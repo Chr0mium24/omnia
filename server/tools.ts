@@ -21,8 +21,7 @@ export const ChromeApiParamsSchema = z.object({
     .string()
     .describe('Method name (e.g. create, query, get, update, remove, executeScript)'),
   params: z
-    .object({})
-    .passthrough()
+    .array(z.unknown())
     .optional()
     .describe('Arguments to pass to the chrome API method call'),
 });
