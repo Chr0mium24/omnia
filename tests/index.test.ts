@@ -32,12 +32,12 @@ describe('createMcpTools', () => {
     const mck = { tool: vi.fn((n: string) => names.push(n)) } as unknown as McpServer;
     const omn = { callTool: vi.fn() } as unknown as OmniaServer;
     createMcpTools(mck, omn);
-    expect(names).toEqual(['omnia_chrome_api', 'omnia_cdp']);
+    expect(names).toEqual(['chrome_api', 'cdp']);
   });
 
   it('chrome_api success callback', async () => {
     let cb: ((a: unknown) => unknown) | null = null;
-    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'omnia_chrome_api') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
+    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'chrome_api') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
     const omn = { callTool: vi.fn().mockResolvedValue([{ id: 1 }]) } as unknown as OmniaServer;
     createMcpTools(mck, omn);
     const r = await cb!({ api: 'tabs', method: 'query' });
@@ -46,7 +46,7 @@ describe('createMcpTools', () => {
 
   it('chrome_api error callback', async () => {
     let cb: ((a: unknown) => unknown) | null = null;
-    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'omnia_chrome_api') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
+    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'chrome_api') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
     const omn = { callTool: vi.fn().mockRejectedValue(new Error('fail')) } as unknown as OmniaServer;
     createMcpTools(mck, omn);
     expect(await cb!({ api: 'tabs', method: 'query' })).toEqual({ content: [{ type: 'text', text: 'fail' }], isError: true });
@@ -54,7 +54,7 @@ describe('createMcpTools', () => {
 
   it('cdp success callback', async () => {
     let cb: ((a: unknown) => unknown) | null = null;
-    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'omnia_cdp') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
+    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'cdp') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
     const omn = { callTool: vi.fn().mockResolvedValue({ ok: true }) } as unknown as OmniaServer;
     createMcpTools(mck, omn);
     expect(await cb!({ method: 'Page.captureScreenshot', tabId: 5 })).toEqual({ content: [{ type: 'text', text: '{\n  "ok": true\n}' }] });
@@ -62,7 +62,7 @@ describe('createMcpTools', () => {
 
   it('cdp error callback', async () => {
     let cb: ((a: unknown) => unknown) | null = null;
-    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'omnia_cdp') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
+    const mck = { tool: vi.fn((n: string, _d: unknown, _s: unknown, c: unknown) => { if (n === 'cdp') cb = c as (a: unknown) => unknown; }) } as unknown as McpServer;
     const omn = { callTool: vi.fn().mockRejectedValue('CDP fail') } as unknown as OmniaServer;
     createMcpTools(mck, omn);
     expect(await cb!({ method: 'Page.navigate', tabId: 1 })).toEqual({ content: [{ type: 'text', text: 'CDP fail' }], isError: true });

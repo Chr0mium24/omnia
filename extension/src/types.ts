@@ -2,7 +2,7 @@ import type { OmniaRequestMessage, OmniaResponseMessage } from '../../server/typ
 
 export type { OmniaRequestMessage, OmniaResponseMessage };
 
-export type ToolName = 'omnia_chrome_api' | 'omnia_cdp';
+export type ToolName = 'chrome_api' | 'cdp';
 
 export type ChromeApiCallParams = {
   api: string;
@@ -27,7 +27,7 @@ export function isCdpParams(params: ToolParams): params is CdpCallParams {
 }
 
 export function formatSummary(tool: ToolName, params: ToolParams): string {
-  if (tool === 'omnia_chrome_api' && isChromeApiParams(params)) {
+  if (tool === 'chrome_api' && isChromeApiParams(params)) {
     const { api, method, params: p } = params;
     if (method === 'create' && p && typeof p === 'object' && 'url' in p) return `${api}.${method} ${p.url}`;
     if (method === 'remove' && p && typeof p === 'object' && 'tabId' in p) return `${api}.${method} tab ${p.tabId}`;
@@ -35,7 +35,7 @@ export function formatSummary(tool: ToolName, params: ToolParams): string {
     if (method === 'executeScript') return `${api}.${method}`;
     return `${api}.${method}`;
   }
-  if (tool === 'omnia_cdp' && isCdpParams(params)) {
+  if (tool === 'cdp' && isCdpParams(params)) {
     return `${params.method} tab ${params.tabId}`;
   }
   return 'unknown';

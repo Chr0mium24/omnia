@@ -96,8 +96,8 @@ function broadcastStatus(status: 'connected' | 'disconnected' | 'connecting'): v
   });
 }
 
-async function handleToolCall(tool: 'omnia_chrome_api' | 'omnia_cdp', params: ToolParams): Promise<unknown> {
-  if (tool === 'omnia_chrome_api') {
+async function handleToolCall(tool: 'chrome_api' | 'cdp', params: ToolParams): Promise<unknown> {
+  if (tool === 'chrome_api') {
     return handleChromeApi(params as ChromeApiCallParams);
   }
   return handleCdp(params as CdpCallParams);
@@ -138,7 +138,7 @@ function sendResponse(requestId: string, payload: { result?: unknown; error?: st
 }
 
 function logOperation(
-  tool: 'omnia_chrome_api' | 'omnia_cdp',
+  tool: 'chrome_api' | 'cdp',
   status: 'completed' | 'failed',
   params: ToolParams,
   error?: string,
@@ -146,7 +146,7 @@ function logOperation(
   return appendOplog({
     id: crypto.randomUUID(),
     timestamp: Date.now(),
-    action: tool === 'omnia_chrome_api'
+    action: tool === 'chrome_api'
       ? `chrome_api ${(params as ChromeApiCallParams).api}.${(params as ChromeApiCallParams).method}`
       : `cdp ${(params as CdpCallParams).method}`,
     status,

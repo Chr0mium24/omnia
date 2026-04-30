@@ -35,7 +35,7 @@ export function createMcpTools(mcp: McpServer, omnia: OmniaServer): void {
     ChromeApiParamsSchema.shape,
     async (args): Promise<CallToolResult> => {
       try {
-        const result = await omnia.callTool('omnia_chrome_api', {
+        const result = await omnia.callTool('chrome_api', {
           api: args.api,
           method: args.method,
           params: args.params as Record<string, unknown> | undefined,
@@ -53,7 +53,7 @@ export function createMcpTools(mcp: McpServer, omnia: OmniaServer): void {
     CdpParamsSchema.shape,
     async (args): Promise<CallToolResult> => {
       try {
-        const result = await omnia.callTool('omnia_cdp', {
+        const result = await omnia.callTool('cdp', {
           method: args.method,
           params: args.params as Record<string, unknown> | undefined,
           tabId: args.tabId,

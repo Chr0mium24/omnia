@@ -83,7 +83,7 @@ describe('CdpParamsSchema', () => {
 
 describe('tool schema definitions', () => {
   it('chromeApiToolSchema has correct name', () => {
-    expect(chromeApiToolSchema.name).toBe('omnia_chrome_api');
+    expect(chromeApiToolSchema.name).toBe('chrome_api');
   });
 
   it('chromeApiToolSchema has description', () => {
@@ -92,7 +92,7 @@ describe('tool schema definitions', () => {
   });
 
   it('cdpToolSchema has correct name', () => {
-    expect(cdpToolSchema.name).toBe('omnia_cdp');
+    expect(cdpToolSchema.name).toBe('cdp');
   });
 
   it('cdpToolSchema has description', () => {

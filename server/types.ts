@@ -6,7 +6,7 @@ export type OmniaRequestMessage = {
 } | {
   type: 'request';
   requestId: string;
-  tool: 'omnia_chrome_api' | 'omnia_cdp';
+  tool: 'chrome_api' | 'cdp';
   params: ChromeApiCallParams | CdpCallParams;
 };
 
@@ -36,6 +36,6 @@ export type CdpCallParams = {
   tabId: number;
 };
 
-export type ToolName = 'omnia_chrome_api' | 'omnia_cdp';
+export type ToolName = 'chrome_api' | 'cdp';
 
 export type ToolParams = ChromeApiCallParams | CdpCallParams;

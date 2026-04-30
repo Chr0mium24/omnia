@@ -51,7 +51,7 @@ describe('OmniaServer', () => {
     it('resolves with result when extension responds', async () => {
       const client = await wsConnect(port);
 
-      const resultPromise = server.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' });
+      const resultPromise = server.callTool('chrome_api', { api: 'tabs', method: 'query' });
 
       const raw = await new Promise<string>((resolve) => {
         client.once('message', (data) => resolve(data.toString()));
@@ -59,7 +59,7 @@ describe('OmniaServer', () => {
 
       const msg = JSON.parse(raw);
       expect(msg.type).toBe('request');
-      expect(msg.tool).toBe('omnia_chrome_api');
+      expect(msg.tool).toBe('chrome_api');
       expect(msg.params.api).toBe('tabs');
       expect(msg.params.method).toBe('query');
 
@@ -78,7 +78,7 @@ describe('OmniaServer', () => {
     it('rejects with error from extension', async () => {
       const client = await wsConnect(port);
 
-      const resultPromise = server.callTool('omnia_cdp', { method: 'Page.navigate', params: { url: 'https://x.com' }, tabId: 5 });
+      const resultPromise = server.callTool('cdp', { method: 'Page.navigate', params: { url: 'https://x.com' }, tabId: 5 });
 
       const raw = await new Promise<string>((resolve) => {
         client.once('message', (data) => resolve(data.toString()));
@@ -98,7 +98,7 @@ describe('OmniaServer', () => {
 
     it('rejects when no extension connected', async () => {
       await expect(
-        server.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' }),
+        server.callTool('chrome_api', { api: 'tabs', method: 'query' }),
       ).rejects.toThrow('No connected extension');
     });
 
@@ -109,7 +109,7 @@ describe('OmniaServer', () => {
       try {
         const client = await wsConnect(p);
         await expect(
-          fastServer.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' }),
+          fastServer.callTool('chrome_api', { api: 'tabs', method: 'query' }),
         ).rejects.toThrow('timed out');
         client.close();
       } finally {
@@ -129,9 +129,9 @@ describe('OmniaServer', () => {
         });
       });
 
-      const p1 = server.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' });
-      const p2 = server.callTool('omnia_chrome_api', { api: 'bookmarks', method: 'getTree' });
-      const p3 = server.callTool('omnia_cdp', { method: 'Page.navigate', tabId: 1 });
+      const p1 = server.callTool('chrome_api', { api: 'tabs', method: 'query' });
+      const p2 = server.callTool('chrome_api', { api: 'bookmarks', method: 'getTree' });
+      const p3 = server.callTool('cdp', { method: 'Page.navigate', tabId: 1 });
 
       const received = await msgPromise;
       const ids = received.map(m => JSON.parse(m).requestId);
@@ -236,7 +236,7 @@ describe('OmniaServer', () => {
   describe('shutdown', () => {
     it('rejects all pending requests', async () => {
       const client = await wsConnect(port);
-      const promise = server.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' });
+      const promise = server.callTool('chrome_api', { api: 'tabs', method: 'query' });
 
       // Attach rejection handler first to avoid unhandled rejection
       const caught = expect(promise).rejects.toThrow('shutting down');
@@ -315,7 +315,7 @@ describe('OmniaServer', () => {
 
         const start = Date.now();
         await expect(
-          customServer.callTool('omnia_chrome_api', { api: 'tabs', method: 'query' }),
+          customServer.callTool('chrome_api', { api: 'tabs', method: 'query' }),
         ).rejects.toThrow('timed out');
         const elapsed = Date.now() - start;
 

@@ -99,20 +99,20 @@ describe('handleIncomingMessage', () => {
 
   it('chrome_api request', async () => {
     await connectFirst();
-    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r1', tool: 'omnia_chrome_api', params: { api: 'tabs', method: 'query' } }));
+    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r1', tool: 'chrome_api', params: { api: 'tabs', method: 'query' } }));
     expect(mockAppendOplog).toHaveBeenCalledWith(expect.objectContaining({ action: 'chrome_api tabs.query', status: 'completed' }));
   });
 
   it('CDP request', async () => {
     await connectFirst();
-    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r2', tool: 'omnia_cdp', params: { method: 'Page.navigate', tabId: 5 } }));
+    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r2', tool: 'cdp', params: { method: 'Page.navigate', tabId: 5 } }));
     expect(mockAppendOplog).toHaveBeenCalledWith(expect.objectContaining({ action: 'cdp Page.navigate', status: 'completed' }));
   });
 
   it('failure log', async () => {
     vi.mocked(_chrome.tabs.query).mockRejectedValueOnce(new Error('fail'));
     await connectFirst();
-    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r3', tool: 'omnia_chrome_api', params: { api: 'tabs', method: 'query' } }));
+    await bg.handleIncomingMessage(JSON.stringify({ type: 'request', requestId: 'r3', tool: 'chrome_api', params: { api: 'tabs', method: 'query' } }));
     expect(mockAppendOplog).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed', error: 'fail' }));
   });
 

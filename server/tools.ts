@@ -38,7 +38,7 @@ export const CdpParamsSchema = z.object({
 });
 
 export const chromeApiToolSchema = {
-  name: 'omnia_chrome_api' as const,
+  name: 'chrome_api' as const,
   description:
     'Call any chrome.* extension API directly. ' +
     'Use "api" for namespace (tabs, windows, scripting, cookies, bookmarks, history, downloads, storage, browsingData, runtime, debugger, webNavigation), ' +
@@ -46,7 +46,7 @@ export const chromeApiToolSchema = {
 };
 
 export const cdpToolSchema = {
-  name: 'omnia_cdp' as const,
+  name: 'cdp' as const,
   description:
     'Send any Chrome DevTools Protocol command via chrome.debugger. ' +
     'All CDP domains are available: Page, Network, Runtime, DOM, CSS, Input, Emulation, Performance, Accessibility, Storage, Debugger, etc. ' +
