@@ -3,35 +3,36 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-const storageGet = vi.fn().mockResolvedValue({});
-const storageSet = vi.fn().mockResolvedValue(undefined);
 const onChangedListeners: ((changes: Record<string, unknown>) => void)[] = [];
 const runtimeMessageListeners: ((msg: Record<string, unknown>) => void)[] = [];
 
-const mockChrome = {
-  runtime: {
-    id: 'test-ext-id',
-    sendMessage: vi.fn().mockImplementation((msg: Record<string, unknown>, cb?: (r: unknown) => undefined) => {
-      if (cb) cb({ status: 'connected' });
-      return Promise.resolve({ status: 'connected' });
-    }),
-    onMessage: { addListener: vi.fn().mockImplementation((fn: (msg: Record<string, unknown>) => void) => { runtimeMessageListeners.push(fn); }) },
-    lastError: undefined as { message?: string } | undefined,
-  },
-  storage: {
-    local: { get: storageGet, set: storageSet },
-    onChanged: { addListener: vi.fn().mockImplementation((fn: (c: Record<string, unknown>) => void) => { onChangedListeners.push(fn); }) },
-  },
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _chrome = (globalThis as any).chrome as typeof chrome;
 
-vi.stubGlobal('chrome', mockChrome);
+vi.mocked(_chrome.storage.local.get).mockResolvedValue({});
+vi.mocked(_chrome.storage.local.set).mockResolvedValue(undefined);
+vi.mocked(_chrome.storage.onChanged.addListener).mockImplementation((fn) => {
+  onChangedListeners.push(fn as (changes: Record<string, unknown>) => void);
+});
+vi.mocked(_chrome.runtime.onMessage.addListener).mockImplementation((fn) => {
+  runtimeMessageListeners.push(fn as (msg: Record<string, unknown>) => void);
+});
+vi.mocked(_chrome.runtime.sendMessage).mockImplementation((msg, cb) => {
+  if (typeof cb === 'function') (cb as (r: unknown) => void)({ status: 'connected' });
+  return Promise.resolve({ status: 'connected' });
+});
+
+const getConfigFn = vi.fn().mockResolvedValue({ wsHost: '127.0.0.1', wsPort: 3131, cdpEnabled: false });
+const setConfigFn = vi.fn().mockResolvedValue(undefined);
+const getOplogFn = vi.fn().mockResolvedValue([]);
+const clearOplogFn = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('../extension/src/storage.ts', () => ({
-  getConfig: vi.fn().mockImplementation(() => Promise.resolve({ wsHost: '127.0.0.1', wsPort: 3131, cdpEnabled: false })),
-  setConfig: vi.fn().mockResolvedValue(undefined),
-  getOplog: vi.fn().mockResolvedValue([]),
+  getConfig: getConfigFn,
+  setConfig: setConfigFn,
+  getOplog: getOplogFn,
   appendOplog: vi.fn(),
-  clearOplog: vi.fn().mockResolvedValue(undefined),
+  clearOplog: clearOplogFn,
 }));
 
 function setupDom() {
@@ -43,7 +44,8 @@ describe('popup', () => {
     vi.clearAllMocks();
     onChangedListeners.length = 0;
     runtimeMessageListeners.length = 0;
-    storageGet.mockResolvedValue({});
+    getConfigFn.mockResolvedValue({ wsHost: '127.0.0.1', wsPort: 3131, cdpEnabled: false });
+    getOplogFn.mockResolvedValue([]);
     setupDom();
     await vi.resetModules();
     await import('../extension/src/popup.ts');
@@ -56,25 +58,76 @@ describe('popup', () => {
     expect((document.getElementById('cdpEnabled') as HTMLInputElement).checked).toBe(false);
   });
 
-  it('updates status display for connected', () => {
+  it('updates status for connected', () => {
     for (const fn of runtimeMessageListeners) fn({ action: 'connectionStatus', status: 'connected' });
     expect((document.getElementById('statusDot') as HTMLSpanElement).className).toBe('status-dot connected');
     expect((document.getElementById('statusText') as HTMLSpanElement).textContent).toBe('Connected');
   });
 
-  it('updates status display for disconnected', () => {
+  it('updates status for disconnected', () => {
     for (const fn of runtimeMessageListeners) fn({ action: 'connectionStatus', status: 'disconnected' });
     expect((document.getElementById('statusDot') as HTMLSpanElement).className).toBe('status-dot disconnected');
     expect((document.getElementById('statusText') as HTMLSpanElement).textContent).toBe('Disconnected');
   });
 
-  it('updates status display for connecting', () => {
+  it('updates status for connecting', () => {
     for (const fn of runtimeMessageListeners) fn({ action: 'connectionStatus', status: 'connecting' });
     expect((document.getElementById('statusText') as HTMLSpanElement).textContent).toBe('Connecting');
   });
 
   it('calls getStatus on init', async () => {
     await new Promise((r) => setTimeout(r, 50));
-    expect(mockChrome.runtime.sendMessage).toHaveBeenCalledWith({ action: 'getStatus' }, expect.any(Function));
+    expect(_chrome.runtime.sendMessage).toHaveBeenCalledWith({ action: 'getStatus' }, expect.any(Function));
+  });
+
+  it('saves and reconnects on wsHost change', async () => {
+    const wsHost = document.getElementById('wsHost') as HTMLInputElement;
+    wsHost.value = '10.0.0.1';
+    wsHost.dispatchEvent(new Event('change'));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(setConfigFn).toHaveBeenCalledWith(expect.objectContaining({ wsHost: '10.0.0.1' }));
+  });
+
+  it('saves CDP on checkbox change', async () => {
+    const cdpCheck = document.getElementById('cdpEnabled') as HTMLInputElement;
+    cdpCheck.checked = true;
+    cdpCheck.dispatchEvent(new Event('change'));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(setConfigFn).toHaveBeenCalledWith({ cdpEnabled: true });
+  });
+
+  it('clears log on button click', async () => {
+    const clearLogBtn = document.getElementById('clearLog') as HTMLButtonElement;
+    clearLogBtn.dispatchEvent(new Event('click'));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(clearOplogFn).toHaveBeenCalled();
+  });
+
+  it('renders log entries', async () => {
+    getOplogFn.mockResolvedValue([{
+      id: '1', timestamp: Date.now(), action: 'tabs.query',
+      status: 'completed', summary: 'tabs.query',
+    }]);
+    for (const fn of onChangedListeners) fn({ omnia_oplog: { newValue: 'x', oldValue: 'y' } });
+    await new Promise((r) => setTimeout(r, 100));
+    const log = document.getElementById('log') as HTMLDivElement;
+    expect(log.innerHTML).toContain('tabs.query');
+  });
+
+  it('handles loadStatus with runtime.lastError', async () => {
+    _chrome.runtime.lastError = { message: 'context invalid' };
+    vi.mocked(_chrome.runtime.sendMessage).mockImplementation((_msg, cb) => {
+      if (typeof cb === 'function') (cb as (r: unknown) => void)(undefined);
+      return Promise.resolve(undefined);
+    });
+
+    setupDom();
+    await vi.resetModules();
+    await import('../extension/src/popup.ts');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect((document.getElementById('statusText') as HTMLSpanElement).textContent).toBe('Disconnected');
+    _chrome.runtime.lastError = undefined;
   });
 });
