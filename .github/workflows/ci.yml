@@ -38,7 +38,7 @@ jobs:
       - name: Package extension
         run: |
           mkdir -p dist/omnia-extension
-          cp extension/dist/*.js extension/dist/*.js.map dist/omnia-extension/
+          cp extension/dist/*.js dist/omnia-extension/
           cp -r extension/icons dist/omnia-extension/
           cp extension/manifest.json extension/popup.html dist/omnia-extension/
       - name: Create extension zip
